@@ -2,7 +2,7 @@
 
 JavaScript CLI for the Docs Pipeline API.
 
-This follows the same lightweight style as the other CLI tools in `/Users/michael/Projects`: plain Node.js, ESM modules, no runtime dependencies, local config storage, and JSON-first output that works well for humans and agents.
+This follows the same lightweight style as sibling CLI tools in `~/Projects`: plain Node.js, ESM modules, no runtime dependencies, local config storage, and JSON-first output that works well for humans and agents.
 
 Current capabilities:
 
@@ -23,13 +23,13 @@ Current capabilities:
 Run directly:
 
 ```bash
-node /Users/michael/Projects/docs-cli/bin/docs.js help
+node ~/Projects/docs-cli/bin/docs.js help
 ```
 
 Or link it globally from the project directory:
 
 ```bash
-cd /Users/michael/Projects/docs-cli
+cd ~/Projects/docs-cli
 npm link
 docs help
 ```
