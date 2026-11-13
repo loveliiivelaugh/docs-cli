@@ -8,6 +8,7 @@ import {
   saveConfig,
 } from "./config.js";
 import { docsRequest, loadJsonInput } from "./http.js";
+import { runKnowledgeSync } from "./knowledge.js";
 
 const HELP_TEXT = `docs-cli
 
@@ -30,6 +31,7 @@ Usage:
   docs jobs wait <job_id> [--interval <seconds>] [--timeout <seconds>]
   docs jobs artifacts <job_id>
   docs request <method> <path> [--query key=value]... [--data <json> | --input <file.json>]
+  docs knowledge sync [--repo-root <path>] [--include-path <path>]... [--include-embeddings true|false] [--smoke-query <query>] [--dry-run]
 
 Examples:
   docs auth login --api-key "$DOCS_API_KEY" --base-url http://127.0.0.1:8000
@@ -45,12 +47,16 @@ Examples:
   docs jobs artifacts abc123
   docs render markdown --input-path ./notes/brief.md
   docs request POST /v1/jobs/convert-pdf --data '{"input_dir":"./pdfs"}'
+  docs knowledge sync
+  docs knowledge sync --dry-run
+  docs knowledge sync --smoke-query "robotics authentication architecture"
 
 Notes:
   - credentials are stored at ~/.config/docs-cli/config.json
   - DOCS_API_KEY overrides the stored key for the current command
   - DOCS_API_BASE_URL overrides the stored base URL for the current command
   - the default base URL is ${getDefaultBaseUrl()}
+  - knowledge sync copies only allowlisted Markdown/MDX/TXT paths before invoking Guardian on m4
 `;
 
 function parseArgs(argv) {
@@ -457,6 +463,15 @@ async function handleRequest(positionals, flags) {
   printJson(response.body);
 }
 
+async function handleKnowledge(positionals, flags) {
+  const action = positionals[1];
+  if (action !== "sync") {
+    throw new Error("Usage: docs knowledge sync [--dry-run] [--smoke-query <query>]");
+  }
+
+  printJson(await runKnowledgeSync({ flags }));
+}
+
 export async function runCli(argv) {
   const { positionals, flags } = parseArgs(argv);
   const command = positionals[0];
@@ -522,6 +537,11 @@ export async function runCli(argv) {
 
   if (command === "request") {
     await handleRequest(positionals, flags);
+    return;
+  }
+
+  if (command === "knowledge") {
+    await handleKnowledge(positionals, flags);
     return;
   }
 

@@ -8,6 +8,7 @@
   },
   "scripts": {
     "check": "node --check ./bin/docs.js && node --check ./src/*.js",
+    "test": "node --test",
     "start": "node ./bin/docs.js",
     "test:smoke": "node ./bin/docs.js help"
   },

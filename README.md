@@ -13,6 +13,7 @@ Current capabilities:
 - Submit image extraction, transcription, and render jobs
 - Poll job status and fetch artifacts
 - Send raw authenticated requests to unsupported endpoints while the CLI grows
+- Synchronize allowlisted Markdown into the Guardian Knowledge Atlas and verify retrieval
 
 ## Requirements
 
@@ -23,13 +24,13 @@ Current capabilities:
 Run directly:
 
 ```bash
-node ~/Projects/docs-cli/bin/docs.js help
+node ~/infra/cli/docs-cli/bin/docs.js help
 ```
 
 Or link it globally from the project directory:
 
 ```bash
-cd ~/Projects/docs-cli
+cd ~/infra/cli/docs-cli
 npm link
 docs help
 ```
@@ -90,6 +91,7 @@ docs jobs status <job_id>
 docs jobs wait <job_id>
 docs jobs artifacts <job_id>
 docs request <method> <path>
+docs knowledge sync [--dry-run] [--smoke-query <query>]
 ```
 
 ## PDF Formatting
@@ -175,6 +177,51 @@ Render files:
 docs render markdown --input-path ./notes/brief.md
 docs render text --input-path ./notes/brief.txt
 ```
+
+## Knowledge Atlas Sync
+
+From any directory, synchronize the four approved documentation paths to the mirror on `m4`, incrementally update Guardian's SurrealDB Knowledge Atlas, and run a lexical retrieval smoke test:
+
+```bash
+docs knowledge sync
+```
+
+Preview which Markdown, MDX, or text files would be transferred without changing the mirror or index:
+
+```bash
+docs knowledge sync --dry-run
+```
+
+Use a query related to the document you just added for the smoke test:
+
+```bash
+docs knowledge sync \
+  --smoke-query "robotics authentication architecture"
+```
+
+The command permits only:
+
+- `docs/Infrastructure`
+- `docs/Robotics`
+- `docs/API`
+- `docs/tools`
+- `docs/Intelligent-Memory`
+
+Select a subset with repeated `--include-path` flags. Paths outside the allowlist are rejected.
+
+Embeddings remain off by default while the local embedding service on `m4` is unavailable. After that service is restored:
+
+```bash
+docs knowledge sync --include-embeddings true
+```
+
+Optional environment overrides:
+
+- `WOODWARD_STUDIO_DOCS_ROOT`
+- `DOCS_KNOWLEDGE_HOST`
+- `DOCS_KNOWLEDGE_MIRROR_ROOT`
+- `DOCS_KNOWLEDGE_SOURCE_KEY`
+- `DOCS_KNOWLEDGE_SMOKE_QUERY`
 
 ## Raw Requests
 
