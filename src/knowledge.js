@@ -1,6 +1,5 @@
 import { execFile as execFileCallback } from "node:child_process";
 import { access } from "node:fs/promises";
-import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 
@@ -15,17 +14,10 @@ export const KNOWLEDGE_INCLUDE_PATHS = Object.freeze([
 ]);
 
 const INDEXABLE_EXTENSIONS = new Set([".md", ".mdx", ".txt"]);
-const DEFAULT_REPO_ROOT = path.join(os.homedir(), "Projects", "woodward-studio-docs");
-const DEFAULT_MIRROR_ROOT = "/Users/michaelwoodward/Knowledge/woodward-studio-docs";
 const DEFAULT_HOST = "m4";
 const DEFAULT_SOURCE_KEY = "woodward-studio-docs";
 const DEFAULT_SMOKE_QUERY = "Guardian Knowledge Atlas";
 const DEFAULT_LAKE_SOURCE_SYSTEM = "woodward_studio_docs";
-const DEFAULT_LAKE_SOURCES = "/Users/michaelwoodward/Projects/intelligence-lake/config/sources.json";
-const DEFAULT_IDENTITY_MANIFEST =
-  "/Users/michaelwoodward/Data/intelligence-lake/guardian-address-manifest.json";
-const DEFAULT_CHUNK_MANIFEST =
-  "/Users/michaelwoodward/Data/intelligence-lake/guardian-chunk-manifest.jsonl";
 
 function asList(value) {
   if (value === undefined) return [];
@@ -69,6 +61,12 @@ export function parseRsyncChangedFiles(stdout) {
     .filter(Boolean)
     .map((line) => line.replace(/^\S+\s+/, "").replace(/\s+->\s+.*$/, ""))
     .filter((filePath) => INDEXABLE_EXTENSIONS.has(path.extname(filePath).toLowerCase()));
+}
+
+function requiredPath(value, flag, env) {
+  const result = optionalString(value) || optionalString(process.env[env]);
+  if (!result) throw new Error(`Provide --${flag} or ${env}.`);
+  return result;
 }
 
 function validateHost(host) {
@@ -116,7 +114,7 @@ async function defaultRun(command, args, options = {}) {
 }
 
 function buildRemoteGuardianCommand(args) {
-  return [`$HOME/.local/bin/guardian`, ...args.map(shellQuote)].join(" ");
+  return [`guardian`, ...args.map(shellQuote)].join(" ");
 }
 
 async function runGuardian(run, host, args) {
@@ -130,7 +128,7 @@ async function runGuardian(run, host, args) {
 }
 
 function buildRemoteLakeCommand(args) {
-  return [`$HOME/.local/bin/lakectl`, ...args.map(shellQuote)].join(" ");
+  return [`lakectl`, ...args.map(shellQuote)].join(" ");
 }
 
 async function runLake(run, host, args) {
@@ -144,14 +142,10 @@ async function runLake(run, host, args) {
 
 export function buildKnowledgeSyncConfig(flags = {}) {
   const repoRoot = path.resolve(
-    optionalString(flags["repo-root"]) ||
-      process.env.WOODWARD_STUDIO_DOCS_ROOT ||
-      DEFAULT_REPO_ROOT,
+    requiredPath(flags["repo-root"], "repo-root", "WOODWARD_STUDIO_DOCS_ROOT"),
   );
   const mirrorRoot = validateRemotePath(
-    optionalString(flags["mirror-root"]) ||
-      process.env.DOCS_KNOWLEDGE_MIRROR_ROOT ||
-      DEFAULT_MIRROR_ROOT,
+    requiredPath(flags["mirror-root"], "mirror-root", "DOCS_KNOWLEDGE_MIRROR_ROOT"),
   );
   const host = validateHost(
     optionalString(flags.host) || process.env.DOCS_KNOWLEDGE_HOST || DEFAULT_HOST,
@@ -165,14 +159,10 @@ export function buildKnowledgeSyncConfig(flags = {}) {
     process.env.DOCS_KNOWLEDGE_SMOKE_QUERY ||
     DEFAULT_SMOKE_QUERY;
   const identityManifest = validateRemotePath(
-    optionalString(flags["identity-manifest"]) ||
-      process.env.DOCS_KNOWLEDGE_IDENTITY_MANIFEST ||
-      DEFAULT_IDENTITY_MANIFEST,
+    requiredPath(flags["identity-manifest"], "identity-manifest", "DOCS_KNOWLEDGE_IDENTITY_MANIFEST"),
   );
   const chunkManifest = validateRemotePath(
-    optionalString(flags["chunk-manifest"]) ||
-      process.env.DOCS_KNOWLEDGE_CHUNK_MANIFEST ||
-      DEFAULT_CHUNK_MANIFEST,
+    requiredPath(flags["chunk-manifest"], "chunk-manifest", "DOCS_KNOWLEDGE_CHUNK_MANIFEST"),
   );
 
   return {
@@ -186,7 +176,7 @@ export function buildKnowledgeSyncConfig(flags = {}) {
     lakeSourceSystem:
       optionalString(flags["lake-source-system"]) || DEFAULT_LAKE_SOURCE_SYSTEM,
     lakeSources:
-      optionalString(flags["lake-sources"]) || DEFAULT_LAKE_SOURCES,
+      validateRemotePath(requiredPath(flags["lake-sources"], "lake-sources", "DOCS_KNOWLEDGE_LAKE_SOURCES")),
     includePaths: normalizeKnowledgeIncludePaths(flags["include-path"]),
     includeEmbeddings: parseBooleanOption(flags["include-embeddings"], false),
     dryRun: parseBooleanOption(flags["dry-run"], false),

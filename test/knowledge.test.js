@@ -59,20 +59,20 @@ test("remote shell arguments are quoted", () => {
   assert.equal(shellQuote("robot's controller"), `'robot'"'"'s controller'`);
 });
 
-test("knowledge sync configuration defaults embeddings off", () => {
-  const config = buildKnowledgeSyncConfig({
+test("knowledge sync requires configured locations and defaults embeddings off", () => {
+  const flags = {
     "repo-root": process.cwd(),
-  });
+    "mirror-root": "/mirror",
+    "lake-sources": "/sources.json",
+    "identity-manifest": "/identity.json",
+    "chunk-manifest": "/chunks.jsonl",
+  };
+  const config = buildKnowledgeSyncConfig(flags);
   assert.equal(config.includeEmbeddings, false);
   assert.equal(config.host, "m4");
   assert.equal(config.sourceKey, "woodward-studio-docs");
   assert.equal(config.lakeSourceSystem, "woodward_studio_docs");
-  assert.equal(
-    config.identityManifest,
-    "/Users/michaelwoodward/Data/intelligence-lake/guardian-address-manifest.json",
-  );
-  assert.equal(
-    config.chunkManifest,
-    "/Users/michaelwoodward/Data/intelligence-lake/guardian-chunk-manifest.jsonl",
-  );
+  assert.equal(config.identityManifest, flags["identity-manifest"]);
+  assert.equal(config.chunkManifest, flags["chunk-manifest"]);
+  assert.throws(() => buildKnowledgeSyncConfig({ ...flags, "mirror-root": "relative" }), /absolute remote path/);
 });

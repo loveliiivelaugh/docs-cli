@@ -52,7 +52,7 @@ Examples:
   docs knowledge sync --smoke-query "robotics authentication architecture"
 
 Notes:
-  - credentials are stored at ~/.config/docs-cli/config.json
+  - credentials are stored in the current user’s configuration directory
   - DOCS_API_KEY overrides the stored key for the current command
   - DOCS_API_BASE_URL overrides the stored base URL for the current command
   - the default base URL is ${getDefaultBaseUrl()}

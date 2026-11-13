@@ -2,7 +2,7 @@
 
 JavaScript CLI for the Docs Pipeline API.
 
-This follows the same lightweight style as sibling CLI tools in `~/Projects`: plain Node.js, ESM modules, no runtime dependencies, local config storage, and JSON-first output that works well for humans and agents.
+Designed as a lightweight CLI: plain Node.js, ESM modules, no runtime dependencies, local config storage, and JSON-first output that works well for humans and agents.
 
 Current capabilities:
 
@@ -24,13 +24,12 @@ Current capabilities:
 Run directly:
 
 ```bash
-node ~/infra/cli/docs-cli/bin/docs.js help
+node bin/docs.js help
 ```
 
 Or link it globally from the project directory:
 
 ```bash
-cd ~/infra/cli/docs-cli
 npm link
 docs help
 ```
@@ -62,7 +61,7 @@ Remove saved auth:
 docs auth logout
 ```
 
-Credentials are stored at `~/.config/docs-cli/config.json`.
+Credentials are stored in the current user’s configuration directory.
 
 Environment overrides:
 
@@ -180,7 +179,7 @@ docs render text --input-path ./notes/brief.txt
 
 ## Knowledge Atlas Sync
 
-From any directory, synchronize the four approved documentation paths to the mirror on `m4`, incrementally update Guardian's SurrealDB Knowledge Atlas, and run a lexical retrieval smoke test:
+Configure the source and remote locations before synchronizing the approved documentation paths. Guardian and lakectl must be available on the remote host’s PATH. The sync updates Guardian’s SurrealDB Knowledge Atlas and runs a lexical retrieval smoke test:
 
 ```bash
 docs knowledge sync
@@ -215,11 +214,16 @@ Embeddings remain off by default while the local embedding service on `m4` is un
 docs knowledge sync --include-embeddings true
 ```
 
-Optional environment overrides:
+Required configuration (each can also be supplied as the corresponding command-line flag):
 
-- `WOODWARD_STUDIO_DOCS_ROOT`
+- `WOODWARD_STUDIO_DOCS_ROOT` (`--repo-root`)
+- `DOCS_KNOWLEDGE_MIRROR_ROOT` (`--mirror-root`)
+- `DOCS_KNOWLEDGE_LAKE_SOURCES` (`--lake-sources`)
+- `DOCS_KNOWLEDGE_IDENTITY_MANIFEST` (`--identity-manifest`)
+- `DOCS_KNOWLEDGE_CHUNK_MANIFEST` (`--chunk-manifest`)
+
+Optional environment overrides:
 - `DOCS_KNOWLEDGE_HOST`
-- `DOCS_KNOWLEDGE_MIRROR_ROOT`
 - `DOCS_KNOWLEDGE_SOURCE_KEY`
 - `DOCS_KNOWLEDGE_SMOKE_QUERY`
 
