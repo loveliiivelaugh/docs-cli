@@ -239,13 +239,6 @@ function buildConvertCsvHtmlBody(flags) {
   };
 }
 
-function csvHtmlEndpointNotConfiguredError() {
-  throw new Error(
-    "CSV-to-HTML is scaffolded in docs-cli, but the Docs API endpoint is not wired yet. " +
-      "Recommended backend route: POST /v1/jobs/convert-csv-html",
-  );
-}
-
 async function createJob(pathname, body) {
   const context = await getAuthContext();
   const response = await docsRequest({
@@ -498,8 +491,8 @@ export async function runCli(argv) {
     }
 
     if (positionals[1] === "csv-html") {
-      buildConvertCsvHtmlBody(flags);
-      csvHtmlEndpointNotConfiguredError();
+      await createJob("/v1/jobs/convert-csv-html", buildConvertCsvHtmlBody(flags));
+      return;
     }
 
     throw new Error("Usage: docs format <pdf|csv-html> ...");
@@ -511,8 +504,8 @@ export async function runCli(argv) {
   }
 
   if (command === "convert-csv-html") {
-    buildConvertCsvHtmlBody(flags);
-    csvHtmlEndpointNotConfiguredError();
+    await createJob("/v1/jobs/convert-csv-html", buildConvertCsvHtmlBody(flags));
+    return;
   }
 
   if (command === "extract-images") {
